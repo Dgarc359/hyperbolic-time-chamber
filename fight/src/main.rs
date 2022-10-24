@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+
 use liso::{IO, liso, Response};
 
 struct Person {
@@ -20,15 +22,19 @@ fn main() {
     io.prompt(liso!(fg=green, +bold, "> ", reset), true, true);
 
     while me.hp != 0 && enemy.hp != 0 {
-        io.status(liso!(reverse, fg=green, format!(" HP: {}/{} Pot: {}    Enemy HP: {}/{}", me.hp, 50, me.potions, enemy.hp, 100));
-        io.println("your turn, wat do");
+        let mut banner = "-------------\n\
+        | att | pot |\n\
+        -------------";
+
+        io.status(Some(liso!(fg=green, format!("HP: {}/{} Pot: {}    Enemy HP: {}/{}\n{}", me.hp, 50, me.potions,enemy.hp, 100,banner))));
+
         let input = match io.blocking_read() {
             Response::Input(line) => match line.as_str() {
-                "attack" => {
+                "attack" | "att" => {
                     enemy.hp -= 10;
                     // attack things
                 },
-                "potion" => {
+                "potion" | "pot" => {
                     if me.potions == 0 {
                         io.println("Out of potions");
                         continue;
