@@ -1,0 +1,9 @@
+[package]
+name = "fight"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+liso = {git = "https://github.com/SolraBizna/liso", rev="e6b6c7808eb35b6509d75f2e92a9dd69eaf263fa"}
