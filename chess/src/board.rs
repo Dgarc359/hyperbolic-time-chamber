@@ -68,8 +68,11 @@ impl Material {
 
 pub struct Board {
     pub bitboard: u16, // 2d array where outer arr is a col (file), inner is a row (num), ex, a2 would be arr[0][1]
-    pub position: HashMap<Team, HashMap<Pieces,Vec<u16>>>, // some structure to hold position of pieces
+    // pub position: HashMap<Team, HashMap<Pieces,Vec<u16>>>, // some structure to hold position of pieces
+    pub position: HashMap<Team, Vec<GamePiece>>
 }
+// todo: use u16s as hashmap keys
+
 
 impl Board {
     pub fn new() -> Self {
@@ -82,13 +85,16 @@ impl Board {
     /* There will be multiple of the same piece in diff squares, so we hold individual pos in a vec */
     pub fn starting_pos() -> HashMap<Team, HashMap<Pieces, Vec<u16>>> {
         // todo: I should probably use GamePiece instead of a nested hashmap
-        let mut white_piece_pos: HashMap<Pieces, Vec<u16>> = HashMap::new();
-        white_piece_pos.insert(Pieces::Pawn, vec![8,9,10,11,12,13,14,15]);
-        white_piece_pos.insert(Pieces::Rook, vec![0, 7]);
-        white_piece_pos.insert(Pieces::Knight, vec![1,6]);
-        white_piece_pos.insert(Pieces::Bishop, vec![2, 5]);
-        white_piece_pos.insert(Pieces::Queen, vec![3]);
-        white_piece_pos.insert(Pices::King, vec![4]);
+        // let mut white_piece_pos: HashMap<Pieces, Vec<u16>> = HashMap::new();
+        // white_piece_pos.insert(Pieces::Pawn, vec![8,9,10,11,12,13,14,15]);
+        // white_piece_pos.insert(Pieces::Rook, vec![0, 7]);
+        // white_piece_pos.insert(Pieces::Knight, vec![1,6]);
+        // white_piece_pos.insert(Pieces::Bishop, vec![2, 5]);
+        // white_piece_pos.insert(Pieces::Queen, vec![3]);
+        // white_piece_pos.insert(Pices::King, vec![4]);
+        let white_initial_pieces = vec![
+
+        ];
         
         let mut pos: HashMap<Team, HashMap<Pieces, Vec<u16>>> = HashMap::new();
         pos.insert(Team::White, white_piece_pos);
