@@ -27,14 +27,17 @@ struct Material {
 
 impl Material {
     pub fn new(team: Team, kind: Pieces, start_pos: u16) -> Material {
-
         Self {
             team: team,
             kind: kind,
             starting_pos: start_pos,
             current_pos: start_pos,
-            legal_moves: vec![]
+            legal_moves: moves
         }
+    }
+
+    fn calc_legal_moves(&self, team: &Team, kind: &Pieces, curr_pos: &u16) -> Vec<u16> {
+        vec![]
     }
 
     // pub fn calc_legal_moves(&self) -> Material {
