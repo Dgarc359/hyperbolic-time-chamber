@@ -14,6 +14,7 @@ enum Team {
 
 struct Piece {
     legal_moves: Vec<u16>,
+    current_pos: u16,
     kind: Pieces,
     team: Team,
 }
