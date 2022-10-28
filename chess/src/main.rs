@@ -8,6 +8,8 @@ pub use board::{Board, Team, Pieces};
 
 fn main() {
     let test = Board::new();
-    let test2 = test.position.get(&Team::White).unwrap().get(&Pieces::Pawn).unwrap();
+    let white_rook = test.position.get(&0u16).unwrap();
+    println!("{:?}", white_rook)
+    // let test2 = test.position.get(&Team::White).unwrap().get(&Pieces::Pawn).unwrap();
 
 }
