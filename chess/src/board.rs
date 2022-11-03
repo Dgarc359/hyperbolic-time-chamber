@@ -115,11 +115,11 @@ impl Board {
         }
     }
 
-    pub fn check_move_is_legal(&mut self, piece: &Material, to: BoardPos) -> bool {
+    pub fn check_move_is_legal(&mut self, piece: &Material, from: BoardPos, to: BoardPos) -> bool {
       // check that friendly pieces are not on the spot wanting to move to
       // check that move will not put king into check
 
-      
+
       false
     }
 
@@ -127,7 +127,7 @@ impl Board {
         let cur = self.position.get(&from).unwrap().to_owned();
         // TODO: Some logic to decide whether or not the piece can actually move where it wants to go
 
-        if Board::check_move_is_legal(self, &cur, to) {
+        if Board::check_move_is_legal(self, &cur, from,  to) {
           self.position.remove(&from);
           self.position.insert(to, cur);
         } else {
