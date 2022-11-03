@@ -67,11 +67,10 @@ impl Material {
 
 
 pub struct Board {
-    pub bitboard: u16, // 2d array where outer arr is a col (file), inner is a row (num), ex, a2 would be arr[0][1]
+    pub bitboard: u16, 
 
     pub position: HashMap<u16, Option<Material>>
 }
-// todo: use u16s as hashmap keys
 
 fn build_piece(team: Team, cur_pos: u16, kind: Pieces) -> Material {
     Material {
@@ -154,11 +153,10 @@ impl Board {
     }
 
     pub fn move_piece(&mut self, from: u16, to: u16) {
-        let cur = self.position.get(&from).unwrap().unwrap();
+        let cur = self.position.get(&from).unwrap().as_ref().unwrap();
         // TODO: Some logic to decide whether or not the piece can actually move where it wants to go
 
-        if Board::check_move_is_legal(&cur, to) {
-          // self.position.insert(from, Some(None));
+        if Board::check_move_is_legal(cur, to) {
           self.position.remove(&from);
           self.position.insert(to, Some(cur));
         } else {
