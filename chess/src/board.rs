@@ -37,9 +37,6 @@ impl Material {
             cur_pos: start_pos,
         }
     }
-
-
-
     // fn calc_legal_moves(&self, team: &Team, kind: &Pieces, curr_pos: &u16) -> Vec<u16> {
     //     vec![]
     // }
@@ -71,8 +68,7 @@ impl Material {
 
 pub struct Board {
     pub bitboard: u16, // 2d array where outer arr is a col (file), inner is a row (num), ex, a2 would be arr[0][1]
-    // pub position: HashMap<Team, HashMap<Pieces,Vec<u16>>>, // some structure to hold position of pieces
-    // pub position: HashMap<Team, Vec<GamePiece>>
+
     pub position: HashMap<u16, Option<Material>>
 }
 // todo: use u16s as hashmap keys
@@ -85,13 +81,7 @@ fn build_piece(team: Team, cur_pos: u16, kind: Pieces) -> Material {
     }
 }
 
-// impl Material {
-//     pub fn move() {
-
-//     }
-// }
-
-fn build_board() -> HashMap<u16, Material> {
+fn build_board() -> HashMap<u16, Option<Material>> {
     let mut map: HashMap<u16, Option<Material>> = HashMap::new();
 
     /* White Pieces */
@@ -123,9 +113,6 @@ fn build_board() -> HashMap<u16, Material> {
     map.insert(13, Some(build_piece(Team::White, 13, Pieces::Pawn)));
     map.insert(14, Some(build_piece(Team::White, 14, Pieces::Pawn)));
     map.insert(15, Some(build_piece(Team::White, 15, Pieces::Pawn)));
-    
-
-
 
     /* Black Pieces */
 
@@ -153,8 +140,7 @@ fn build_board() -> HashMap<u16, Material> {
 
 impl Board {
     pub fn new() -> Self {
-        // let pos = Board::starting_pos();
-        let mut map: HashMap<u16, Material> = build_board();
+        let mut map: HashMap<u16, Option<Material>> = build_board();
         
         Self { 
             bitboard: 64,
@@ -162,28 +148,21 @@ impl Board {
         }
     }
 
-    pub fn move_piece(&self, from: u16, to: u16) {
-        let cur = self.position.get(&from).unwrap().unwrap();
-        self.position.insert(from, Some(None));
-        self.position.insert(to, Some(cur));
+    pub fn check_move_is_legal(piece: &Material, to: u16) -> bool {
+
+      false
     }
 
-    /* There will be multiple of the same piece in diff squares, so we hold individual pos in a vec */
-    // pub fn starting_pos() -> HashMap<Team, HashMap<Pieces, Vec<u16>>> {
-    //     // todo: I should probably use GamePiece instead of a nested hashmap
-    //     // let mut white_piece_pos: HashMap<Pieces, Vec<u16>> = HashMap::new();
-    //     // white_piece_pos.insert(Pieces::Pawn, vec![8,9,10,11,12,13,14,15]);
-    //     // white_piece_pos.insert(Pieces::Rook, vec![0, 7]);
-    //     // white_piece_pos.insert(Pieces::Knight, vec![1,6]);
-    //     // white_piece_pos.insert(Pieces::Bishop, vec![2, 5]);
-    //     // white_piece_pos.insert(Pieces::Queen, vec![3]);
-    //     // white_piece_pos.insert(Pices::King, vec![4]);
-    //     // let white_initial_pieces = vec![
+    pub fn move_piece(&mut self, from: u16, to: u16) {
+        let cur = self.position.get(&from).unwrap().unwrap();
+        // TODO: Some logic to decide whether or not the piece can actually move where it wants to go
 
-    //     // ];
-        
-    //     // let mut pos: HashMap<Team, HashMap<Pieces, Vec<u16>>> = HashMap::new();
-    //     // pos.insert(Team::White, white_piece_pos);
-    //     // pos
-    // }
+        if Board::check_move_is_legal(&cur, to) {
+          // self.position.insert(from, Some(None));
+          self.position.remove(&from);
+          self.position.insert(to, Some(cur));
+        } else {
+          println!("Illegal Move!")
+        }
+    }
 }
