@@ -1,0 +1,55 @@
+u8
+
+XXXXXXXX
+
+0b10101010
+0xAA
+170
+
+
+
+
+i8
+
+SXXXXXXX
+
+sign-magnitude: (important if you're doing floating point, ugh)
+
+10101010
+1 = it's negative
+ 0101010 = the value
+-0x2A
+-42
+
+one's complement: (Solra doesn't know this one lol...)
+
+two's complement: (this is how it works on real CPUs)
+
+1 = it's negative, subtract 256 from it
+10101010 = the value (note that the sign bit appeared here too)
+0xAA - 0x100 = -86
+
+01111111 = 127 + 1
+10000000 = -128
+
+C
+  11111110 = -2 + 1
+  11111111 = -1
+1 00000000 = 0
+
+
+???????? 11110000
+
+00000000 11110000 = zero extension
+11111111 11110000 = sign extension
+         ^
+00000000 00001111 = sign extension
+         ^
+
+
+
+
+status_Z = 00000010
+status   = 10101010
+         & 11111101
+           10101000
