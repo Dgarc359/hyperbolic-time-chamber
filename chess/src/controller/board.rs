@@ -57,6 +57,8 @@ const fn build_piece(team: Team, kind: Pieces, pos: BoardPos) -> Material {
 }
 
 const INITIAL_BOARD: &[(BoardPos, Material)] = &[
+
+  // white back row
   (BoardPos{x:0,y:0}, build_piece(Team::White, Pieces::Rook, BoardPos{x:0,y:0})),
   (BoardPos{x:1,y:0}, build_piece(Team::White, Pieces::Knight, BoardPos{x:1,y:0})),
   (BoardPos{x:2,y:0}, build_piece(Team::White, Pieces::Bishop, BoardPos{x:2,y:0})),
@@ -65,6 +67,8 @@ const INITIAL_BOARD: &[(BoardPos, Material)] = &[
   (BoardPos{x:5,y:0}, build_piece(Team::White, Pieces::Bishop, BoardPos{x:5,y:0})),
   (BoardPos{x:6,y:0}, build_piece(Team::White, Pieces::Knight, BoardPos{x:6,y:0})),
   (BoardPos{x:7,y:0}, build_piece(Team::White, Pieces::Rook, BoardPos{x:7,y:0})),
+
+  // white pawns
   (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:1})),
   (BoardPos{x:1,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:1,y:1})),
   (BoardPos{x:2,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:2,y:1})),
@@ -73,6 +77,8 @@ const INITIAL_BOARD: &[(BoardPos, Material)] = &[
   (BoardPos{x:5,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:5,y:1})),
   (BoardPos{x:6,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:6,y:1})),
   (BoardPos{x:7,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:7,y:1})),
+
+  // black back row
   (BoardPos{x:0,y:1}, build_piece(Team::Black, Pieces::Rook, BoardPos{x:0,y:7})),
   (BoardPos{x:1,y:7}, build_piece(Team::Black, Pieces::Knight, BoardPos{x:1,y:7})),
   (BoardPos{x:2,y:7}, build_piece(Team::Black, Pieces::Bishop, BoardPos{x:2,y:7})),
@@ -81,7 +87,9 @@ const INITIAL_BOARD: &[(BoardPos, Material)] = &[
   (BoardPos{x:5,y:7}, build_piece(Team::Black, Pieces::Bishop, BoardPos{x:5,y:7})),
   (BoardPos{x:6,y:7}, build_piece(Team::Black, Pieces::Knight, BoardPos{x:6,y:7})),
   (BoardPos{x:7,y:7}, build_piece(Team::Black, Pieces::Rook, BoardPos{x:7,y:7})),
-  (BoardPos{x:0,y:7}, build_piece(Team::Black, Pieces::Pawn, BoardPos{x:0,y:6})),
+
+  // black pawns
+  (BoardPos{x:0,y:6}, build_piece(Team::Black, Pieces::Pawn, BoardPos{x:0,y:6})),
   (BoardPos{x:1,y:6}, build_piece(Team::Black, Pieces::Pawn, BoardPos{x:1,y:6})),
   (BoardPos{x:2,y:6}, build_piece(Team::Black, Pieces::Pawn, BoardPos{x:2,y:6})),
   (BoardPos{x:3,y:6}, build_piece(Team::Black, Pieces::Pawn, BoardPos{x:3,y:6})),
@@ -107,11 +115,8 @@ pub struct Board {
 
 impl Board {
     pub fn new() -> Self {
-        let mut map: PositionHashMap = fresh_board();
-        
         Self { 
             bitboard: 64,
-            // position: map,
             position: fresh_board()
         }
     }
@@ -126,41 +131,43 @@ impl Board {
 
     pub fn move_piece(&mut self, from: BoardPos, to: BoardPos) {
         let mut cur = self.position.get(&from).unwrap().to_owned();
-        // TODO: Some logic to decide whether or not the piece can actually move where it wants to go
-
+       
+        //TODO
         if Self::check_move_is_legal(self, &cur, from,  to) {
           self.position.remove(&from);
           cur.pos = to;
           if !cur.has_moved { cur.has_moved = true; }
           self.position.insert(to, cur);
         } else {
-          // println!("Illegal Move!")
           panic!("Illegal Move")
         }
     }
 
+    fn check_bounds(pos: BoardPos) -> BoardPos {
+      if pos.x > 7 { panic!("Out of bounds move"); }
+      else if pos.y > 7 { panic!("Out of bounds move"); }
+      else { pos }
+    }
+
     fn find_legal_pawn_moves<'a>(piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
-      println!("test");
       match piece.team {
         Team::White => 
         {
           if piece.has_moved {
-            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y + 1});
+            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y + 1}));
             // in this case, pawn can only move one up, unless en passante is available, or blocked
           } else {
-            // map.in
-            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y + 1});
-            moves.push(BoardPos { x: piece.pos.x, y: piece.pos.y + 2 });
+            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y + 1}));
+            moves.push(Self::check_bounds(BoardPos { x: piece.pos.x, y: piece.pos.y + 2 }));
           }
         },
         Team::Black => {
           if piece.has_moved {
-            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y - 1});
+            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y - 1}));
             // in this case, pawn can only move one up, unless en passante is available, or blocked
           } else {
-            // map.in
-            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y - 1});
-            moves.push(BoardPos { x: piece.pos.x, y: piece.pos.y - 2 });
+            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y - 1}));
+            moves.push(Self::check_bounds(BoardPos { x: piece.pos.x, y: piece.pos.y - 2 }));
           }
         },
       }
@@ -208,13 +215,27 @@ mod tests {
   }
 
   #[test] #[should_panic]
-  fn illegal_moves_should_panic() {
+  fn move_pawn_five_spaces_panics() {
     let mut test = Board::new();
     
     // try move pawn 5 spaces forward...
     test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 6});
 
     // try move 
+  }
+
+  #[test] #[should_panic]
+  fn pawn_going_out_of_bounds_panics() {
+    let mut test = Board::new();
+
+    test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 2});
+    test.move_piece(BoardPos { x: 1, y: 2 }, BoardPos { x: 1, y: 3});
+    test.move_piece(BoardPos { x: 1, y: 3 }, BoardPos { x: 1, y: 4});
+    test.move_piece(BoardPos { x: 1, y: 4 }, BoardPos { x: 1, y: 5});
+    test.move_piece(BoardPos { x: 1, y: 5 }, BoardPos { x: 1, y: 6});
+    test.move_piece(BoardPos { x: 1, y: 6 }, BoardPos { x: 1, y: 7});
+    test.move_piece(BoardPos { x: 1, y: 7 }, BoardPos { x: 1, y: 8});
+    test.move_piece(BoardPos { x: 1, y: 8 }, BoardPos { x: 1, y: 9});
   }
 
   #[test]
