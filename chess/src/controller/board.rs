@@ -28,13 +28,15 @@ pub enum Team {
 pub struct Material {
     kind: Pieces,
     team: Team,
+    pos: BoardPos,
 }
 
 impl Material {
-    pub fn new(team: Team, kind: Pieces) -> Material {
+    pub fn new(team: Team, kind: Pieces, pos: BoardPos) -> Material {
         Self {
             team,
             kind,
+            pos,
         }
     }
 }
@@ -43,46 +45,47 @@ type PositionHashMap = HashMap<BoardPos, Material>;
 
 
 
-const fn build_piece(team: Team, kind: Pieces) -> Material {
+const fn build_piece(team: Team, kind: Pieces, pos: BoardPos) -> Material {
     Material {
         team,
-        kind
+        kind,
+        pos
     }
 }
 
 const INITIAL_BOARD: &[(BoardPos, Material)] = &[
-  (BoardPos{x:0,y:0}, build_piece(Team::White, Pieces::Rook)),
-  (BoardPos{x:1,y:0}, build_piece(Team::White, Pieces::Knight)),
-  (BoardPos{x:2,y:0}, build_piece(Team::White, Pieces::Bishop)),
-  (BoardPos{x:3,y:0}, build_piece(Team::White, Pieces::Queen)),
-  (BoardPos{x:4,y:0}, build_piece(Team::White, Pieces::King)),
-  (BoardPos{x:5,y:0}, build_piece(Team::White, Pieces::Bishop)),
-  (BoardPos{x:6,y:0}, build_piece(Team::White, Pieces::Knight)),
-  (BoardPos{x:7,y:0}, build_piece(Team::White, Pieces::Rook)),
-  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:1,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:2,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:3,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:4,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:5,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:6,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:7,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Rook)),
-  (BoardPos{x:1,y:0}, build_piece(Team::White, Pieces::Knight)),
-  (BoardPos{x:2,y:0}, build_piece(Team::White, Pieces::Bishop)),
-  (BoardPos{x:3,y:0}, build_piece(Team::White, Pieces::Queen)),
-  (BoardPos{x:4,y:0}, build_piece(Team::White, Pieces::King)),
-  (BoardPos{x:5,y:0}, build_piece(Team::White, Pieces::Bishop)),
-  (BoardPos{x:6,y:0}, build_piece(Team::White, Pieces::Knight)),
-  (BoardPos{x:7,y:0}, build_piece(Team::White, Pieces::Rook)),
-  (BoardPos{x:0,y:0}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:2}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:3}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:4}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:5}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:6}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:7}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:0,y:0}, build_piece(Team::White, Pieces::Rook, BoardPos{x:0,y:0})),
+  (BoardPos{x:1,y:0}, build_piece(Team::White, Pieces::Knight, BoardPos{x:0,y:0})),
+  (BoardPos{x:2,y:0}, build_piece(Team::White, Pieces::Bishop, BoardPos{x:0,y:0})),
+  (BoardPos{x:3,y:0}, build_piece(Team::White, Pieces::Queen, BoardPos{x:0,y:0})),
+  (BoardPos{x:4,y:0}, build_piece(Team::White, Pieces::King, BoardPos{x:0,y:0})),
+  (BoardPos{x:5,y:0}, build_piece(Team::White, Pieces::Bishop, BoardPos{x:0,y:0})),
+  (BoardPos{x:6,y:0}, build_piece(Team::White, Pieces::Knight, BoardPos{x:0,y:0})),
+  (BoardPos{x:7,y:0}, build_piece(Team::White, Pieces::Rook, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:1,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:2,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:3,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:4,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:5,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:6,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:7,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Rook, BoardPos{x:0,y:0})),
+  (BoardPos{x:1,y:0}, build_piece(Team::White, Pieces::Knight, BoardPos{x:0,y:0})),
+  (BoardPos{x:2,y:0}, build_piece(Team::White, Pieces::Bishop, BoardPos{x:0,y:0})),
+  (BoardPos{x:3,y:0}, build_piece(Team::White, Pieces::Queen, BoardPos{x:0,y:0})),
+  (BoardPos{x:4,y:0}, build_piece(Team::White, Pieces::King, BoardPos{x:0,y:0})),
+  (BoardPos{x:5,y:0}, build_piece(Team::White, Pieces::Bishop, BoardPos{x:0,y:0})),
+  (BoardPos{x:6,y:0}, build_piece(Team::White, Pieces::Knight, BoardPos{x:0,y:0})),
+  (BoardPos{x:7,y:0}, build_piece(Team::White, Pieces::Rook, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:0}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:2}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:3}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:4}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:5}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:6}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
+  (BoardPos{x:0,y:7}, build_piece(Team::White, Pieces::Pawn, BoardPos{x:0,y:0})),
 ];
 
 fn fresh_board() -> PositionHashMap {
@@ -136,6 +139,10 @@ impl Board {
       match piece.kind {
         Pieces::Pawn => {
           println!("test");
+          match piece.team {
+            Team::White => todo!(),
+            Team::Black => todo!(),
+          }
         }
         Pieces::Rook => todo!(),
         Pieces::Knight => todo!(),
