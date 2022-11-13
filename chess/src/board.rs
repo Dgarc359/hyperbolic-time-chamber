@@ -85,7 +85,7 @@ const INITIAL_BOARD: &[(BoardPos, Material)] = &[
   (BoardPos{x:0,y:7}, build_piece(Team::White, Pieces::Pawn)),
 ];
 
-fn build_board() -> PositionHashMap {
+fn fresh_board() -> PositionHashMap {
     let mut map: PositionHashMap = HashMap::new();
     for (pos, material) in INITIAL_BOARD.iter() {
       map.insert(*pos, *material);
@@ -101,13 +101,17 @@ pub struct Board {
 
 impl Board {
     pub fn new() -> Self {
-        let mut map: PositionHashMap = build_board();
+        let mut map: PositionHashMap = fresh_board();
         
         Self { 
             bitboard: 64,
             // position: map,
-            position: build_board()
+            position: fresh_board()
         }
+    }
+
+    pub fn reset_board(&mut self) {
+      self.position = fresh_board();
     }
 
     pub fn get_piece(&self, target: BoardPos) -> Option<Pieces> {
@@ -147,7 +151,8 @@ impl Board {
           self.position.remove(&from);
           self.position.insert(to, cur);
         } else {
-          println!("Illegal Move!")
+          // println!("Illegal Move!")
+          panic!("Illegal Move")
         }
     }
 }
@@ -157,18 +162,35 @@ impl Board {
 mod tests {
   use super::*;
 
-  #[test]
-  fn basic_moves() {
+  #[test] #[should_panic]
+  fn illegal_moves_should_panic() {
     let mut test = Board::new();
-    test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 2 });
-
-    // println!("printing: {:?}", test.position.get(&BoardPos {x: 1, y: 2}));
-    // assert_ne!(None, test.position.get(&BoardPos { x: 1, y: 2 }));
-
-    // test.move_piece(BoardPos{x: 1, y: 6}, BoardPos { x: 1, y: 3});
-    // let pawn = test.get_piece(BoardPos {x: 1, y: 3});
-    // let pawn = test.position.get(&BoardPos {x: 1, y: 3});
-    // assert_eq!(None, pawn);
-    // should_panic!(pawn)
+    
+    // try move pawn 5 spaces forward...
+    test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 6});
   }
+
+  #[test]
+  fn board_resets() {
+    let mut test = Board::new();
+    test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 6});
+    test.reset_board();
+    assert_eq!(Pieces::Pawn, test.get_piece(BoardPos {x: 1, y: 1}).unwrap());
+    
+  }
+
+  // #[test]
+  // fn basic_moves() {
+  //   let mut test = Board::new();
+  //   test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 2 });
+
+  //   // println!("printing: {:?}", test.position.get(&BoardPos {x: 1, y: 2}));
+  //   // assert_ne!(None, test.position.get(&BoardPos { x: 1, y: 2 }));
+
+  //   // test.move_piece(BoardPos{x: 1, y: 6}, BoardPos { x: 1, y: 3});
+  //   // let pawn = test.get_piece(BoardPos {x: 1, y: 3});
+  //   // let pawn = test.position.get(&BoardPos {x: 1, y: 3});
+  //   // assert_eq!(None, pawn);
+  //   // should_panic!(pawn)
+  // }
 }
