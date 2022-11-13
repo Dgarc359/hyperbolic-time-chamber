@@ -176,7 +176,6 @@ mod tests {
     test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 6});
     test.reset_board();
     assert_eq!(Pieces::Pawn, test.get_piece(BoardPos {x: 1, y: 1}).unwrap());
-    
   }
 
   // #[test]
