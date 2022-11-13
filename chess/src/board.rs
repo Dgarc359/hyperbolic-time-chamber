@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 
+
+// TODO: translation between chess moves and boardpos
 #[derive(Copy, Clone, Eq, Hash, PartialEq, Debug)]
 pub struct BoardPos {
-  x: u8,
-  y: u8,
+  pub x: u8,
+  pub y: u8,
 }
 
 #[derive(Copy, Clone, Eq, Hash, PartialEq, Debug)]
@@ -22,7 +24,7 @@ pub enum Team {
     Black
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Material {
     kind: Pieces,
     team: Team,
@@ -35,40 +37,11 @@ impl Material {
             kind,
         }
     }
-    // fn calc_legal_moves(&self, team: &Team, kind: &Pieces, curr_pos: &u16) -> Vec<u16> {
-    //     vec![]
-    // }
-
-    // pub fn calc_legal_moves(&self) -> Material {
-    //     match self.kind {
-    //         Pieces::Pawn => {
-    //             let legal_moves = vec![self.current_pos + 8];
-    //         },
-    //         Pieces::Bishop => {
-    //             // bishop legal moves
-    //         },
-    //         Pieces::Knight => {
-    //             // knight legal moves
-    //         },
-    //         Pieces::Rook => {
-    //             // ...
-    //         },
-    //         Pieces::Queen => {
-    //             // ...
-    //         },
-    //         Pieces::King => {
-    //             // ...
-    //         }
-    //     }
-    // }
 }
 
 type PositionHashMap = HashMap<BoardPos, Material>;
 
-pub struct Board {
-    pub bitboard: u16, 
-    pub position: PositionHashMap
-}
+
 
 const fn build_piece(team: Team, kind: Pieces) -> Material {
     Material {
@@ -87,13 +60,29 @@ const INITIAL_BOARD: &[(BoardPos, Material)] = &[
   (BoardPos{x:6,y:0}, build_piece(Team::White, Pieces::Knight)),
   (BoardPos{x:7,y:0}, build_piece(Team::White, Pieces::Rook)),
   (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:1,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:2,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:3,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:4,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:5,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:6,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:7,y:1}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Rook)),
+  (BoardPos{x:1,y:0}, build_piece(Team::White, Pieces::Knight)),
+  (BoardPos{x:2,y:0}, build_piece(Team::White, Pieces::Bishop)),
+  (BoardPos{x:3,y:0}, build_piece(Team::White, Pieces::Queen)),
+  (BoardPos{x:4,y:0}, build_piece(Team::White, Pieces::King)),
+  (BoardPos{x:5,y:0}, build_piece(Team::White, Pieces::Bishop)),
+  (BoardPos{x:6,y:0}, build_piece(Team::White, Pieces::Knight)),
+  (BoardPos{x:7,y:0}, build_piece(Team::White, Pieces::Rook)),
+  (BoardPos{x:0,y:0}, build_piece(Team::White, Pieces::Pawn)),
+  (BoardPos{x:0,y:1}, build_piece(Team::White, Pieces::Pawn)),
   (BoardPos{x:0,y:2}, build_piece(Team::White, Pieces::Pawn)),
   (BoardPos{x:0,y:3}, build_piece(Team::White, Pieces::Pawn)),
   (BoardPos{x:0,y:4}, build_piece(Team::White, Pieces::Pawn)),
   (BoardPos{x:0,y:5}, build_piece(Team::White, Pieces::Pawn)),
   (BoardPos{x:0,y:6}, build_piece(Team::White, Pieces::Pawn)),
   (BoardPos{x:0,y:7}, build_piece(Team::White, Pieces::Pawn)),
-  (BoardPos{x:0,y:8}, build_piece(Team::White, Pieces::Pawn)),
 ];
 
 fn build_board() -> PositionHashMap {
@@ -105,22 +94,49 @@ fn build_board() -> PositionHashMap {
     map
 }
 
+pub struct Board {
+  pub bitboard: u16, 
+  pub position: PositionHashMap
+}
+
 impl Board {
     pub fn new() -> Self {
         let mut map: PositionHashMap = build_board();
         
         Self { 
             bitboard: 64,
-            position: map,
+            // position: map,
+            position: build_board()
         }
+    }
+
+    pub fn get_piece(&self, target: BoardPos) -> Option<Pieces> {
+      Some(self.position.get(&target).unwrap().kind)
+    }
+
+    pub fn find_legal_moves(piece: &Material, target: BoardPos) -> HashMap<u32, BoardPos> {
+      let mut map = HashMap::new();
+      match piece.kind {
+        Pieces::Pawn => {
+          println!("test");
+        }
+        Pieces::Rook => todo!(),
+        Pieces::Knight => todo!(),
+        Pieces::Bishop => todo!(),
+        Pieces::Queen => todo!(),
+        Pieces::King => todo!(),
+      }
+      map
     }
 
     pub fn check_move_is_legal(&mut self, piece: &Material, from: BoardPos, to: BoardPos) -> bool {
       // check that friendly pieces are not on the spot wanting to move to
       // check that move will not put king into check
-
-
-      false
+      // let legal_moves = Self::find_legal_moves(&piece, &target);
+      // if Self::find_legal_moves(piece, to) {
+      //   todo!()
+      // }
+      true
     }
 
     pub fn move_piece(&mut self, from: BoardPos, to: BoardPos) {
@@ -134,4 +150,25 @@ impl Board {
           println!("Illegal Move!")
         }
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn basic_moves() {
+    let mut test = Board::new();
+    test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 2 });
+
+    // println!("printing: {:?}", test.position.get(&BoardPos {x: 1, y: 2}));
+    // assert_ne!(None, test.position.get(&BoardPos { x: 1, y: 2 }));
+
+    // test.move_piece(BoardPos{x: 1, y: 6}, BoardPos { x: 1, y: 3});
+    // let pawn = test.get_piece(BoardPos {x: 1, y: 3});
+    // let pawn = test.position.get(&BoardPos {x: 1, y: 3});
+    // assert_eq!(None, pawn);
+    // should_panic!(pawn)
+  }
 }
