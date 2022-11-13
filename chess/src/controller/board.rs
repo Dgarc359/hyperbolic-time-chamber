@@ -178,18 +178,4 @@ mod tests {
     assert_eq!(Pieces::Pawn, test.get_piece(BoardPos {x: 1, y: 1}).unwrap());
   }
 
-  // #[test]
-  // fn basic_moves() {
-  //   let mut test = Board::new();
-  //   test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 2 });
-
-  //   // println!("printing: {:?}", test.position.get(&BoardPos {x: 1, y: 2}));
-  //   // assert_ne!(None, test.position.get(&BoardPos { x: 1, y: 2 }));
-
-  //   // test.move_piece(BoardPos{x: 1, y: 6}, BoardPos { x: 1, y: 3});
-  //   // let pawn = test.get_piece(BoardPos {x: 1, y: 3});
-  //   // let pawn = test.position.get(&BoardPos {x: 1, y: 3});
-  //   // assert_eq!(None, pawn);
-  //   // should_panic!(pawn)
-  // }
 }
