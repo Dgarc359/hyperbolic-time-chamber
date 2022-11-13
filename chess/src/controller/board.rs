@@ -118,7 +118,20 @@ impl Board {
       Some(self.position.get(&target).unwrap().kind)
     }
 
-    pub fn find_legal_moves(piece: &Material, target: BoardPos) -> HashMap<u32, BoardPos> {
+    pub fn move_piece(&mut self, from: BoardPos, to: BoardPos) {
+        let cur = self.position.get(&from).unwrap().to_owned();
+        // TODO: Some logic to decide whether or not the piece can actually move where it wants to go
+
+        if Self::check_move_is_legal(self, &cur, from,  to) {
+          self.position.remove(&from);
+          self.position.insert(to, cur);
+        } else {
+          // println!("Illegal Move!")
+          panic!("Illegal Move")
+        }
+    }
+
+    fn find_legal_moves(piece: &Material, target: BoardPos) -> HashMap<u32, BoardPos> {
       let mut map = HashMap::new();
       match piece.kind {
         Pieces::Pawn => {
@@ -133,7 +146,7 @@ impl Board {
       map
     }
 
-    pub fn check_move_is_legal(&mut self, piece: &Material, from: BoardPos, to: BoardPos) -> bool {
+    fn check_move_is_legal(&mut self, piece: &Material, from: BoardPos, to: BoardPos) -> bool {
       // check that friendly pieces are not on the spot wanting to move to
       // check that move will not put king into check
       // let legal_moves = Self::find_legal_moves(&piece, &target);
@@ -141,19 +154,6 @@ impl Board {
       //   todo!()
       // }
       true
-    }
-
-    pub fn move_piece(&mut self, from: BoardPos, to: BoardPos) {
-        let cur = self.position.get(&from).unwrap().to_owned();
-        // TODO: Some logic to decide whether or not the piece can actually move where it wants to go
-
-        if Board::check_move_is_legal(self, &cur, from,  to) {
-          self.position.remove(&from);
-          self.position.insert(to, cur);
-        } else {
-          // println!("Illegal Move!")
-          panic!("Illegal Move")
-        }
     }
 }
 
