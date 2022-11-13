@@ -131,7 +131,7 @@ impl Board {
         if Self::check_move_is_legal(self, &cur, from,  to) {
           self.position.remove(&from);
           cur.pos = to;
-          if(!cur.has_moved) { cur.has_moved = true; }
+          if !cur.has_moved { cur.has_moved = true; }
           self.position.insert(to, cur);
         } else {
           // println!("Illegal Move!")
@@ -139,26 +139,38 @@ impl Board {
         }
     }
 
+    fn find_legal_pawn_moves<'a>(piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
+      println!("test");
+      match piece.team {
+        Team::White => 
+        {
+          if piece.has_moved {
+            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y + 1});
+            // in this case, pawn can only move one up, unless en passante is available, or blocked
+          } else {
+            // map.in
+            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y + 1});
+            moves.push(BoardPos { x: piece.pos.x, y: piece.pos.y + 2 });
+          }
+        },
+        Team::Black => {
+          if piece.has_moved {
+            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y - 1});
+            // in this case, pawn can only move one up, unless en passante is available, or blocked
+          } else {
+            // map.in
+            moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y - 1});
+            moves.push(BoardPos { x: piece.pos.x, y: piece.pos.y - 2 });
+          }
+        },
+      }
+      moves
+    }
+
     fn find_legal_moves(piece: &Material) -> Vec<BoardPos> {
-      // let mut map = HashMap::new();
       let mut moves : Vec<BoardPos> = vec![];
       match piece.kind {
-        Pieces::Pawn => {
-          println!("test");
-          match piece.team {
-            Team::White => {
-              if piece.has_moved {
-                todo!()
-                // in this case, pawn can only move one up, unless en passante is available, or blocked
-              } else {
-                // map.in
-                moves.push(BoardPos {x: piece.pos.x, y: piece.pos.y + 1});
-                moves.push(BoardPos { x: piece.pos.x, y: piece.pos.y + 2 });
-              }
-            },
-            Team::Black => todo!(),
-          }
-        }
+        Pieces::Pawn => { moves = Self::find_legal_pawn_moves(piece, &mut moves).to_vec() },
         Pieces::Rook => todo!(),
         Pieces::Knight => todo!(),
         Pieces::Bishop => todo!(),
@@ -169,19 +181,14 @@ impl Board {
       moves
     }
 
+    /**
+     * Check move complies with movement limitations of certain piece type
+     * Check friendly pieces are not on the spot wanting to move to
+     * Check move will not put king in check
+     */
     fn check_move_is_legal(&mut self, piece: &Material, from: BoardPos, to: BoardPos) -> bool {
       // check that friendly pieces are not on the spot wanting to move to
       // check that move will not put king into check
-      // let legal_moves = Self::find_legal_moves(&piece, &target);
-      // if Self::find_legal_moves(piece, to) {
-      //   todo!()
-      // }
-      // if Self::find_legal_moves(piece).contains(&to) {
-      //   true
-      // } else {
-      //   false
-      // }
-      // Self::find_legal_moves(piece).contains(&to)
       let legal_moves = Self::find_legal_moves(piece);
       legal_moves.iter().for_each(|&val| println!("legal move: {:?}", val));
       Self::find_legal_moves(piece).iter().any(|&legal_move| legal_move == to)
@@ -193,12 +200,21 @@ impl Board {
 mod tests {
   use super::*;
 
+  #[test]
+  fn legal_moves_should_work() {
+    let mut board = Board::new();
+
+    board.move_piece(BoardPos {x: 1, y: 1}, BoardPos {x: 1, y: 2});
+  }
+
   #[test] #[should_panic]
   fn illegal_moves_should_panic() {
     let mut test = Board::new();
     
     // try move pawn 5 spaces forward...
     test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 6});
+
+    // try move 
   }
 
   #[test]
