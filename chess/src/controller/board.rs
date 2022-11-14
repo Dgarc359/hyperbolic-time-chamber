@@ -125,14 +125,13 @@ impl Board {
       self.position = fresh_board();
     }
 
-    pub fn get_piece(&self, target: BoardPos) -> Option<Pieces> {
-      Some(self.position.get(&target).unwrap().kind)
+    pub fn get_piece(&self, target: BoardPos) -> Option<&Material> {
+      self.position.get(&target)
     }
 
     pub fn move_piece(&mut self, from: BoardPos, to: BoardPos) {
         let mut cur = self.position.get(&from).unwrap().to_owned();
        
-        //TODO
         if Self::check_move_is_legal(self, &cur, from,  to) {
           self.position.remove(&from);
           cur.pos = to;
@@ -149,35 +148,99 @@ impl Board {
       else { pos }
     }
 
-    fn find_legal_pawn_moves<'a>(piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
+    fn check_pawn_is_blocked(&self, pos: BoardPos, target: BoardPos) -> BoardPos {
+      let targ = target;
+      match self.get_piece(targ) {
+        Some(i) => {
+          panic!("blocked")
+        },
+        _ => {}
+      }
+      target
+    }
+
+    fn check_bounds_and_blocked(&self, pos: BoardPos, target: BoardPos ) -> BoardPos {
+      let target = Self::check_bounds(target);
+      let target = Self::check_pawn_is_blocked(self, pos, target);
+      target
+    }
+
+    fn pawn_eats(&self, piece: &Material) -> Vec<Option<BoardPos>> {
+      let mut eats: Vec<Option<BoardPos>> = vec![];
+      match piece.team {
+        Team::Black => {
+          match self.get_piece(BoardPos { x: piece.pos.x + 1, y: piece.pos.y - 1}) {
+            Some(_) => {
+              eats.push(Some(BoardPos { x: piece.pos.x + 1, y: piece.pos.y - 1}));
+            },
+            None => {},
+          }
+          match self.get_piece(BoardPos { x: piece.pos.x - 1, y: piece.pos.y - 1}) {
+            Some(_) => {
+              eats.push(Some(BoardPos { x: piece.pos.x - 1, y: piece.pos.y - 1}));
+            },
+            None => {},
+          }
+        },
+        Team::White => {
+          match self.get_piece(BoardPos { x: piece.pos.x + 1, y: piece.pos.y + 1}) {
+            Some(_) => {
+              eats.push(Some(BoardPos { x: piece.pos.x + 1, y: piece.pos.y + 1}));
+            },
+            None => {},
+          }
+          match self.get_piece(BoardPos { x: piece.pos.x - 1, y: piece.pos.y + 1}) {
+            Some(_) => {
+              eats.push(Some(BoardPos { x: piece.pos.x - 1, y: piece.pos.y + 1}));
+            },
+            None => {},
+          }
+        },
+      }
+      eats
+    }
+
+    fn find_legal_pawn_moves<'a>(&self, piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
       match piece.team {
         Team::White => 
         {
-          if piece.has_moved {
-            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y + 1}));
-            // in this case, pawn can only move one up, unless en passante is available, or blocked
-          } else {
-            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y + 1}));
-            moves.push(Self::check_bounds(BoardPos { x: piece.pos.x, y: piece.pos.y + 2 }));
+          let target = BoardPos {x: piece.pos.x, y: piece.pos.y + 1};
+          moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+          // if pawn_can_eat(piece) {  }
+          let edibles = Self::pawn_eats(self, piece);
+          for positions in edibles.iter() {
+            match positions {
+                Some(pos) => {
+                  moves.push(*pos);
+                },
+                None => todo!(),
+            }
+          }
+
+          if !piece.has_moved {
+            let target = BoardPos {x: piece.pos.x, y: piece.pos.y + 2};
+            
+            moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
           }
         },
         Team::Black => {
-          if piece.has_moved {
-            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y - 1}));
-            // in this case, pawn can only move one up, unless en passante is available, or blocked
-          } else {
-            moves.push(Self::check_bounds(BoardPos {x: piece.pos.x, y: piece.pos.y - 1}));
-            moves.push(Self::check_bounds(BoardPos { x: piece.pos.x, y: piece.pos.y - 2 }));
+          let target = BoardPos {x: piece.pos.x, y: piece.pos.y - 1};
+          moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+
+          if !piece.has_moved {
+            let target = BoardPos {x: piece.pos.x, y: piece.pos.y - 2};
+            
+            moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
           }
         },
       }
       moves
     }
 
-    fn find_legal_moves(piece: &Material) -> Vec<BoardPos> {
+    fn find_legal_moves(&self, piece: &Material) -> Vec<BoardPos> {
       let mut moves : Vec<BoardPos> = vec![];
       match piece.kind {
-        Pieces::Pawn => { moves = Self::find_legal_pawn_moves(piece, &mut moves).to_vec() },
+        Pieces::Pawn => { moves = Self::find_legal_pawn_moves(self, piece, &mut moves).to_vec() },
         Pieces::Rook => todo!(),
         Pieces::Knight => todo!(),
         Pieces::Bishop => todo!(),
@@ -196,9 +259,9 @@ impl Board {
     fn check_move_is_legal(&mut self, piece: &Material, from: BoardPos, to: BoardPos) -> bool {
       // check that friendly pieces are not on the spot wanting to move to
       // check that move will not put king into check
-      let legal_moves = Self::find_legal_moves(piece);
+      let legal_moves = Self::find_legal_moves(self, piece);
       legal_moves.iter().for_each(|&val| println!("legal move: {:?}", val));
-      Self::find_legal_moves(piece).iter().any(|&legal_move| legal_move == to)
+      Self::find_legal_moves(self, piece).iter().any(|&legal_move| legal_move == to)
     }
 }
 
@@ -208,10 +271,37 @@ mod tests {
   use super::*;
 
   #[test]
-  fn legal_moves_should_work() {
+  fn board_resets() {
+    let mut test = Board::new();
+    test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 2});
+    assert_eq!(Pieces::Pawn, test.get_piece(BoardPos {x: 1, y: 2}).unwrap().kind);
+    test.reset_board();
+    assert_eq!(Pieces::Pawn, test.get_piece(BoardPos {x: 1, y: 1}).unwrap().kind);
+  }
+
+  #[test]
+  fn pawn_can_move_one_space() {
     let mut board = Board::new();
 
     board.move_piece(BoardPos {x: 1, y: 1}, BoardPos {x: 1, y: 2});
+    assert_eq!(Pieces::Pawn, board.get_piece(BoardPos {x: 1, y: 2}).unwrap().kind);
+  }
+
+  #[test]
+  fn pawn_can_eat() {
+    let mut board = Board::new();
+    board.move_piece(BoardPos {x: 1, y: 1}, BoardPos {x: 1, y: 3});
+    board.move_piece(BoardPos {x: 2, y: 6}, BoardPos {x: 2, y: 4});
+    board.move_piece(BoardPos {x: 1, y: 3}, BoardPos {x: 2, y: 4});
+  }
+
+  #[test] #[should_panic]
+  fn pawn_moving_through_piece_panics() {
+    let mut board = Board::new();
+    board.move_piece(BoardPos {x: 1, y: 1}, BoardPos { x: 1, y: 3 });
+    board.move_piece(BoardPos { x: 1, y: 6 }, BoardPos{x: 1, y: 4});
+
+    board.move_piece(BoardPos { x: 1, y: 3 }, BoardPos {x: 1, y: 4});
   }
 
   #[test] #[should_panic]
@@ -238,13 +328,6 @@ mod tests {
     test.move_piece(BoardPos { x: 1, y: 8 }, BoardPos { x: 1, y: 9});
   }
 
-  #[test]
-  fn board_resets() {
-    let mut test = Board::new();
-    test.move_piece(BoardPos { x: 1, y: 1 }, BoardPos { x: 1, y: 2});
-    assert_eq!(Pieces::Pawn, test.get_piece(BoardPos {x: 1, y: 2}).unwrap());
-    test.reset_board();
-    assert_eq!(Pieces::Pawn, test.get_piece(BoardPos {x: 1, y: 1}).unwrap());
-  }
+
 
 }
