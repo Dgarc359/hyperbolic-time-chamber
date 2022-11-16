@@ -1,11 +1,25 @@
 use std::collections::HashMap;
 
+type MovesVec = Vec<BoardPos>;
+
+/**
+ * Board Pos Tuple (x[0], y[0])
+ */
+// #[derive(Debug)]
+// pub struct Bp(i16, i16);
+
+pub fn build_bp(bp: (i16, i16)) -> BoardPos {
+  BoardPos {
+    x: bp.0,
+    y: bp.1
+  }
+}
 
 // TODO: translation between chess moves and boardpos
 #[derive(Copy, Clone, Eq, Hash, PartialEq, Debug)]
 pub struct BoardPos {
-  pub x: u8,
-  pub y: u8,
+  pub x: i16,
+  pub y: i16,
 }
 
 #[derive(Copy, Clone, Eq, Hash, PartialEq, Debug)]
@@ -142,27 +156,32 @@ impl Board {
         }
     }
 
-    fn check_bounds(pos: BoardPos) -> BoardPos {
-      if pos.x > 7 { panic!("Out of bounds move"); }
-      else if pos.y > 7 { panic!("Out of bounds move"); }
-      else { pos }
+    fn check_bounds(pos: BoardPos) -> Option<BoardPos> {
+      if pos.x > 7 { None }
+      else if pos.y > 7 { None }
+      else { Some(pos) }
     }
 
-    fn check_pawn_is_blocked(&self, pos: BoardPos, target: BoardPos) -> BoardPos {
+    fn check_pawn_is_blocked(&self, pos: BoardPos, target: BoardPos) -> Option<BoardPos> {
       let targ = target;
       match self.get_piece(targ) {
         Some(i) => {
-          panic!("blocked")
+          None
         },
-        _ => {}
+        _ => Some(target)
       }
-      target
     }
 
-    fn check_bounds_and_blocked(&self, pos: BoardPos, target: BoardPos ) -> BoardPos {
-      let target = Self::check_bounds(target);
-      let target = Self::check_pawn_is_blocked(self, pos, target);
-      target
+    fn check_bounds_and_blocked(&self, pos: BoardPos, target: BoardPos ) -> Option<BoardPos> {
+      match Self::check_bounds(target) {
+        Some(_) => {},
+        None => { return None }
+      }
+      
+      match Self::check_pawn_is_blocked(self, pos, target) {
+        Some(targ) => { Some(targ) },
+        None => { None }
+      }
     }
 
     fn pawn_eats(&self, piece: &Material) -> Vec<Option<BoardPos>> {
@@ -200,37 +219,41 @@ impl Board {
       eats
     }
 
+    fn try_add_pawn_move(&self, moves: &mut MovesVec, piece: &Material, target: BoardPos) {
+      match Self::check_bounds_and_blocked(&self, piece.pos, target) {
+        Some(targ) => moves.push(targ),
+        None => {}
+      }
+    }
+
     fn find_legal_pawn_moves<'a>(&self, piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
       match piece.team {
         Team::White => 
         {
-          let target = BoardPos {x: piece.pos.x, y: piece.pos.y + 1};
-          moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
-          // if pawn_can_eat(piece) {  }
+          Self::try_add_pawn_move(self, moves, piece, build_bp((piece.pos.x, piece.pos.y + 1)));
+          
+
           let edibles = Self::pawn_eats(self, piece);
-          for positions in edibles.iter() {
-            match positions {
+          // see if there is a piece to eat
+          for edible in edibles.iter() {
+            match edible {
                 Some(pos) => {
                   moves.push(*pos);
                 },
-                None => todo!(),
+                None => {},
             }
           }
 
           if !piece.has_moved {
-            let target = BoardPos {x: piece.pos.x, y: piece.pos.y + 2};
+            Self::try_add_pawn_move(self, moves, piece, build_bp((piece.pos.x, piece.pos.y+2)));
             
-            moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
           }
         },
         Team::Black => {
-          let target = BoardPos {x: piece.pos.x, y: piece.pos.y - 1};
-          moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+          Self::try_add_pawn_move(self, moves, piece, build_bp((piece.pos.x, piece.pos.y -1)));
 
           if !piece.has_moved {
-            let target = BoardPos {x: piece.pos.x, y: piece.pos.y - 2};
-            
-            moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+            Self::try_add_pawn_move(self, moves, piece, build_bp((piece.pos.x, piece.pos.y - 2)));
           }
         },
       }
