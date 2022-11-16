@@ -4,8 +4,8 @@ use std::collections::HashMap;
 // TODO: translation between chess moves and boardpos
 #[derive(Copy, Clone, Eq, Hash, PartialEq, Debug)]
 pub struct BoardPos {
-  pub x: u8,
-  pub y: u8,
+  pub x: i16,
+  pub y: i16,
 }
 
 #[derive(Copy, Clone, Eq, Hash, PartialEq, Debug)]
@@ -142,27 +142,34 @@ impl Board {
         }
     }
 
-    fn check_bounds(pos: BoardPos) -> BoardPos {
-      if pos.x > 7 { panic!("Out of bounds move"); }
-      else if pos.y > 7 { panic!("Out of bounds move"); }
-      else { pos }
+    fn check_bounds(pos: BoardPos) -> Option<BoardPos> {
+      if pos.x > 7 { None }
+      else if pos.y > 7 { None }
+      else { Some(pos) }
     }
 
-    fn check_pawn_is_blocked(&self, pos: BoardPos, target: BoardPos) -> BoardPos {
+    fn check_pawn_is_blocked(&self, pos: BoardPos, target: BoardPos) -> Option<BoardPos> {
       let targ = target;
       match self.get_piece(targ) {
         Some(i) => {
-          panic!("blocked")
+          // panic!("blocked")
+          None
         },
-        _ => {}
+        _ => Some(target)
       }
-      target
+      // target
     }
 
-    fn check_bounds_and_blocked(&self, pos: BoardPos, target: BoardPos ) -> BoardPos {
-      let target = Self::check_bounds(target);
-      let target = Self::check_pawn_is_blocked(self, pos, target);
-      target
+    fn check_bounds_and_blocked(&self, pos: BoardPos, target: BoardPos ) -> Option<BoardPos> {
+      match Self::check_bounds(target) {
+        Some(_) => {},
+        None => { return None }
+      }
+      
+      match Self::check_pawn_is_blocked(self, pos, target) {
+        Some(targ) => { Some(targ) },
+        None => { return None }
+      }
     }
 
     fn pawn_eats(&self, piece: &Material) -> Vec<Option<BoardPos>> {
@@ -205,7 +212,11 @@ impl Board {
         Team::White => 
         {
           let target = BoardPos {x: piece.pos.x, y: piece.pos.y + 1};
-          moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+          // moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+          match Self::check_bounds_and_blocked(&self, piece.pos, target) {
+            Some(targ) => moves.push(targ),
+            None => {}
+          }
           // if pawn_can_eat(piece) {  }
           let edibles = Self::pawn_eats(self, piece);
           for positions in edibles.iter() {
@@ -213,24 +224,37 @@ impl Board {
                 Some(pos) => {
                   moves.push(*pos);
                 },
-                None => todo!(),
+                None => {},
             }
           }
 
           if !piece.has_moved {
             let target = BoardPos {x: piece.pos.x, y: piece.pos.y + 2};
+            match Self::check_bounds_and_blocked(&self, piece.pos, target) {
+                Some(targ) => moves.push(targ),
+                None => {},
+            }
             
-            moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+            match Self::check_bounds_and_blocked(&self, piece.pos, target) {
+                Some(targ) => moves.push(targ),
+                None => {},
+            }
           }
         },
         Team::Black => {
           let target = BoardPos {x: piece.pos.x, y: piece.pos.y - 1};
-          moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+          match Self::check_bounds_and_blocked(&self, piece.pos, target) {
+            Some(targ) => moves.push(targ),
+            None => {}
+          }
 
           if !piece.has_moved {
             let target = BoardPos {x: piece.pos.x, y: piece.pos.y - 2};
             
-            moves.push(Self::check_bounds_and_blocked(self, piece.pos, target));
+            match Self::check_bounds_and_blocked(&self, piece.pos, target) {
+                Some(targ) => moves.push(targ),
+                None => {},
+            }
           }
         },
       }
