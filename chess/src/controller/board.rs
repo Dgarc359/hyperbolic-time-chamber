@@ -251,21 +251,29 @@ impl Board {
       moves
     }
 
+    /**
+     * Wrapper method to box in case multiple checks are needed
+     */
     fn try_add_knight_move(&self, moves: &mut MovesVec, piece: &Material, target: BoardPos) {
       match Self::check_bounds(target) {
         Some(targ) => {
           moves.push(targ);
-          // dbg!("try added {:#?}", &moves);
+          dbg!("try added {:#?}", &moves);
         },
         None => {},
       }
-      // moves
-      // moves
     }
 
     fn find_legal_knight_moves<'a>(&self, piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
       let board_pos: &[(i16, i16)] = &[
         (piece.pos.x + 1, piece.pos.y + 2), // right one, up two
+        (piece.pos.x + 2, piece.pos.y + 1), // right two, up one
+        (piece.pos.x - 1, piece.pos.y + 2), // left one, up two
+        (piece.pos.x - 2, piece.pos.y + 1), // left two, up one
+        (piece.pos.x + 1, piece.pos.y - 2), // right one, down two
+        (piece.pos.x + 2, piece.pos.y - 1), // right two, down one
+        (piece.pos.x - 1, piece.pos.y - 2), // left 1, down two
+        (piece.pos.x - 2, piece.pos.y - 1), // left two, down
       ];
 
       for (x, y) in board_pos.iter() {
@@ -372,8 +380,27 @@ mod tests {
   #[test]
   fn knight_can_move() {
     let mut test = Board::new();
-    test.move_piece(build_bp((1, 0)), build_bp((2, 2)));
-    assert_eq!(Pieces::Knight, test.get_piece(build_bp((2,2))).unwrap().kind);
+    let piece = Material::new(Team::White, Pieces::Knight, build_bp((1, 0)));
+
+    let knight_moves: &[(i16, i16)] = &[
+        (piece.pos.x + 1, piece.pos.y + 2), // right one, up two
+        (piece.pos.x + 2, piece.pos.y + 1), // right two, up one
+        (piece.pos.x - 1, piece.pos.y + 2), // left one, up two
+        (piece.pos.x - 2, piece.pos.y + 1), // left two, up one
+        (piece.pos.x + 1, piece.pos.y - 2), // right one, down two
+        (piece.pos.x + 2, piece.pos.y - 1), // right two, down one
+        (piece.pos.x - 1, piece.pos.y - 2), // left 1, down two
+        (piece.pos.x - 2, piece.pos.y - 1), // left two, down
+      ];
+
+
+    for (x, y) in knight_moves.iter() {
+      test.move_piece(build_bp((1, 0)), build_bp((*x, *y)));
+      assert_eq!(Pieces::Knight, test.get_piece(build_bp((*x,*y))).unwrap().kind);
+      test.reset_board();
+    }
+    // test.move_piece(build_bp((1, 0)), build_bp((2, 2)));
+    // assert_eq!(Pieces::Knight, test.get_piece(build_bp((2,2))).unwrap().kind);
   }
 
 
