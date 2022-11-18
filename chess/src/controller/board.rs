@@ -255,9 +255,12 @@ impl Board {
       match Self::check_bounds(target) {
         Some(targ) => {
           moves.push(targ);
+          // dbg!("try added {:#?}", &moves);
         },
         None => {},
       }
+      // moves
+      // moves
     }
 
     fn find_legal_knight_moves<'a>(&self, piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
@@ -266,7 +269,7 @@ impl Board {
       ];
 
       for (x, y) in board_pos.iter() {
-        Self::try_add_knight_move(&self, &mut moves.to_vec(), piece, build_bp((*x, *y)));
+        Self::try_add_knight_move(&self, moves, piece, build_bp((*x, *y)));
       }
       dbg!("Legal Knight Moves: {:#?}", &moves);
 
