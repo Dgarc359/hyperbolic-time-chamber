@@ -2,12 +2,6 @@ use std::collections::HashMap;
 
 type MovesVec = Vec<BoardPos>;
 
-/**
- * Board Pos Tuple (x[0], y[0])
- */
-// #[derive(Debug)]
-// pub struct Bp(i16, i16);
-
 pub fn build_bp(bp: (i16, i16)) -> BoardPos {
   BoardPos {
     x: bp.0,
@@ -58,8 +52,6 @@ impl Material {
 }
 
 type PositionHashMap = HashMap<BoardPos, Material>;
-
-
 
 const fn build_piece(team: Team, kind: Pieces, pos: BoardPos) -> Material {
     Material {
@@ -231,7 +223,6 @@ impl Board {
         Team::White => 
         {
           Self::try_add_pawn_move(self, moves, piece, build_bp((piece.pos.x, piece.pos.y + 1)));
-          
 
           let edibles = Self::pawn_eats(self, piece);
           // see if there is a piece to eat
@@ -260,16 +251,39 @@ impl Board {
       moves
     }
 
+    fn try_add_knight_move(&self, moves: &mut MovesVec, piece: &Material, target: BoardPos) {
+      match Self::check_bounds(target) {
+        Some(targ) => {
+          moves.push(targ);
+        },
+        None => {},
+      }
+    }
+
+    fn find_legal_knight_moves<'a>(&self, piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
+      let board_pos: &[(i16, i16)] = &[
+        (piece.pos.x + 1, piece.pos.y + 2), // right one, up two
+      ];
+
+      for (x, y) in board_pos.iter() {
+        Self::try_add_knight_move(&self, &mut moves.to_vec(), piece, build_bp((*x, *y)));
+      }
+      dbg!("Legal Knight Moves: {:#?}", &moves);
+
+      moves
+    }
+
     fn find_legal_moves(&self, piece: &Material) -> Vec<BoardPos> {
       let mut moves : Vec<BoardPos> = vec![];
       match piece.kind {
         Pieces::Pawn => { moves = Self::find_legal_pawn_moves(self, piece, &mut moves).to_vec() },
         Pieces::Rook => todo!(),
-        Pieces::Knight => todo!(),
+        Pieces::Knight => { moves = Self::find_legal_knight_moves(self, piece, &mut moves).to_vec() },
         Pieces::Bishop => todo!(),
         Pieces::Queen => todo!(),
         Pieces::King => todo!(),
       }
+      dbg!("Moves: {:#?}", &moves);
       // map
       moves
     }
@@ -282,8 +296,6 @@ impl Board {
     fn check_move_is_legal(&mut self, piece: &Material, from: BoardPos, to: BoardPos) -> bool {
       // check that friendly pieces are not on the spot wanting to move to
       // check that move will not put king into check
-      let legal_moves = Self::find_legal_moves(self, piece);
-      legal_moves.iter().for_each(|&val| println!("legal move: {:?}", val));
       Self::find_legal_moves(self, piece).iter().any(|&legal_move| legal_move == to)
     }
 }
@@ -351,6 +363,15 @@ mod tests {
     test.move_piece(BoardPos { x: 1, y: 8 }, BoardPos { x: 1, y: 9});
   }
 
+  /**
+   * Knight Tests
+   */
+  #[test]
+  fn knight_can_move() {
+    let mut test = Board::new();
+    test.move_piece(build_bp((1, 0)), build_bp((2, 2)));
+    assert_eq!(Pieces::Knight, test.get_piece(build_bp((2,2))).unwrap().kind);
+  }
 
 
 }
