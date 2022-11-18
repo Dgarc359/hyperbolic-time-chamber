@@ -149,8 +149,7 @@ impl Board {
     }
 
     fn check_bounds(pos: BoardPos) -> Option<BoardPos> {
-      if pos.x > 7 { None }
-      else if pos.y > 7 { None }
+      if pos.x > 7 || pos.y > 7 || pos.x < 0 || pos.y < 0 { None }
       else { Some(pos) }
     }
 
@@ -386,11 +385,6 @@ mod tests {
         (piece.pos.x + 1, piece.pos.y + 2), // right one, up two
         (piece.pos.x + 2, piece.pos.y + 1), // right two, up one
         (piece.pos.x - 1, piece.pos.y + 2), // left one, up two
-        (piece.pos.x - 2, piece.pos.y + 1), // left two, up one
-        (piece.pos.x + 1, piece.pos.y - 2), // right one, down two
-        (piece.pos.x + 2, piece.pos.y - 1), // right two, down one
-        (piece.pos.x - 1, piece.pos.y - 2), // left 1, down two
-        (piece.pos.x - 2, piece.pos.y - 1), // left two, down
       ];
 
 
@@ -399,8 +393,27 @@ mod tests {
       assert_eq!(Pieces::Knight, test.get_piece(build_bp((*x,*y))).unwrap().kind);
       test.reset_board();
     }
-    // test.move_piece(build_bp((1, 0)), build_bp((2, 2)));
-    // assert_eq!(Pieces::Knight, test.get_piece(build_bp((2,2))).unwrap().kind);
+  }
+
+  #[test] #[should_panic]
+  fn illegal_knight_moves() {
+    let mut test = Board::new();
+    let piece = Material::new(Team::White, Pieces::Knight, build_bp((1, 0)));
+
+    let knight_moves: &[(i16, i16)] = &[
+        (piece.pos.x - 2, piece.pos.y + 1), // left two, up one TODO: should panic
+        (piece.pos.x + 1, piece.pos.y - 2), // right one, down two TODO: should panic
+        (piece.pos.x + 2, piece.pos.y - 1), // right two, down one TODO: should panic
+        (piece.pos.x - 1, piece.pos.y - 2), // left 1, down two TODO: should panic
+        (piece.pos.x - 2, piece.pos.y - 1), // left two, down TODO: should panic
+      ];
+
+
+    for (x, y) in knight_moves.iter() {
+      test.move_piece(build_bp((1, 0)), build_bp((*x, *y)));
+      assert_eq!(Pieces::Knight, test.get_piece(build_bp((*x,*y))).unwrap().kind);
+      test.reset_board();
+    }
   }
 
 
