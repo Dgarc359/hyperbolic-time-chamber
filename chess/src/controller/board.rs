@@ -1,5 +1,10 @@
 use std::collections::HashMap;
 
+/**
+ * TODO list
+ * TODO: refactor build_bp to not take a tuple, this would include calls to this fn..
+ */
+
 type MovesVec = Vec<BoardPos>;
 
 pub fn build_bp(bp: (i16, i16)) -> BoardPos {
@@ -284,18 +289,20 @@ impl Board {
     }
 
     fn find_legal_moves(&self, piece: &Material) -> Vec<BoardPos> {
-      let mut moves : Vec<BoardPos> = vec![];
       match piece.kind {
-        Pieces::Pawn => { moves = Self::find_legal_pawn_moves(self, piece, &mut moves).to_vec() },
+        Pieces::Pawn => { 
+          let mut moves : Vec<BoardPos> = vec![];
+          return Self::find_legal_pawn_moves(self, piece, &mut moves).to_vec()
+        },
         Pieces::Rook => todo!(),
-        Pieces::Knight => { moves = Self::find_legal_knight_moves(self, piece, &mut moves).to_vec() },
+        Pieces::Knight => { 
+          let mut moves : Vec<BoardPos> = vec![];
+          return Self::find_legal_knight_moves(self, piece, &mut moves).to_vec()
+        },
         Pieces::Bishop => todo!(),
         Pieces::Queen => todo!(),
         Pieces::King => todo!(),
       }
-      dbg!("Moves: {:#?}", &moves);
-      // map
-      moves
     }
 
     /**
@@ -393,6 +400,25 @@ mod tests {
       assert_eq!(Pieces::Knight, test.get_piece(build_bp((*x,*y))).unwrap().kind);
       test.reset_board();
     }
+  }
+
+  #[test]
+  fn knight_can_eat() {
+    let mut board = Board::new();
+    let knight = Material::new(Team::White, Pieces::Knight, build_bp((1, 0)));
+    let pawn = Material::new(Team::White, Pieces::Pawn, build_bp((3, 6)));
+
+    let moves: &[((i16, i16), (i16,i16))] = &[
+      ((knight.pos.x + 1, knight.pos.y + 2), (pawn.pos.x, pawn.pos.y - 2)),
+      ((knight.pos.x + 1, knight.pos.y + 2), (pawn.pos.x + 1, pawn.pos.y -2)),
+    ];
+
+    for (white, black) in moves.iter() {
+      board.move_piece(knight.pos, build_bp(*white));
+      board.move_piece(pawn.pos, build_bp(*black));
+    }
+
+    assert_eq!(Pieces::Knight, board.get_piece(knight.pos).unwrap().kind)
   }
 
   #[test] #[should_panic]
