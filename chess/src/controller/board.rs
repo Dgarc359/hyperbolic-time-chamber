@@ -238,10 +238,8 @@ impl Board {
                 None => {},
             }
           }
-
           if !piece.has_moved {
             Self::try_add_pawn_move(self, moves, piece, build_bp((piece.pos.x, piece.pos.y+2)));
-            
           }
         },
         Team::Black => {
@@ -405,20 +403,19 @@ mod tests {
   #[test]
   fn knight_can_eat() {
     let mut board = Board::new();
-    let knight = Material::new(Team::White, Pieces::Knight, build_bp((1, 0)));
-    let pawn = Material::new(Team::White, Pieces::Pawn, build_bp((3, 6)));
 
-    let moves: &[((i16, i16), (i16,i16))] = &[
-      ((knight.pos.x + 1, knight.pos.y + 2), (pawn.pos.x, pawn.pos.y - 2)),
-      ((knight.pos.x + 1, knight.pos.y + 2), (pawn.pos.x + 1, pawn.pos.y -2)),
+    let moves: &[(((i16, i16),(i16, i16)), ((i16, i16),(i16, i16)))] = &[
+      (((1,0),(2, 2)), ((3,6),(3,4))),
+      (((2,2),(3, 4)), ((4,6),(4, 4))),
     ];
 
     for (white, black) in moves.iter() {
-      board.move_piece(knight.pos, build_bp(*white));
-      board.move_piece(pawn.pos, build_bp(*black));
+      board.move_piece(build_bp(white.0), build_bp(white.1));
+      dbg!("Knight pos after move: {:?}\tGet Piece after Move: {:?}", white.0, board.get_piece(build_bp(white.1)).unwrap());
+      board.move_piece(build_bp(black.0), build_bp(black.1));
     }
 
-    assert_eq!(Pieces::Knight, board.get_piece(knight.pos).unwrap().kind)
+    assert_eq!(Pieces::Knight, board.get_piece(build_bp((3,4))).unwrap().kind)
   }
 
   #[test] #[should_panic]
