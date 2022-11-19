@@ -286,13 +286,45 @@ impl Board {
       moves
     }
 
+    fn rook_eats(&self, piece: &Material, target: BoardPos) -> Option<BoardPos> {
+      Some(piece.pos)
+    }
+
+    fn rook_check_bounds_and_eat(&self, target: BoardPos, piece: &Material) -> Option<BoardPos>{
+      match Self::check_bounds(target) {
+        Some(..) => {},
+        None => {return None},
+      }
+
+      match Self::rook_eats(self, piece, target) {
+        Some(targ) => Some(targ),
+        None => {return None},
+      }
+    }
+
+    fn find_legal_rook_moves<'a>(&self, piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
+      for i in piece.pos.y .. 8 {
+        // check upward direction
+        match Self::rook_check_bounds_and_eat(self, build_bp((piece.pos.x, piece.pos.y + i)), piece) {
+            Some(targ) => { moves.push(targ); },
+            None => break,
+        }
+      }
+
+      moves
+    }
+
+
     fn find_legal_moves(&self, piece: &Material) -> Vec<BoardPos> {
       match piece.kind {
         Pieces::Pawn => { 
           let mut moves : Vec<BoardPos> = vec![];
           return Self::find_legal_pawn_moves(self, piece, &mut moves).to_vec()
         },
-        Pieces::Rook => todo!(),
+        Pieces::Rook => {
+          let mut moves : Vec<BoardPos> = vec![];
+          return Self::find_legal_pawn_moves(self, piece, &mut moves).to_vec()
+        },
         Pieces::Knight => { 
           let mut moves : Vec<BoardPos> = vec![];
           return Self::find_legal_knight_moves(self, piece, &mut moves).to_vec()
@@ -376,6 +408,24 @@ mod tests {
     test.move_piece(BoardPos { x: 1, y: 6 }, BoardPos { x: 1, y: 7});
     test.move_piece(BoardPos { x: 1, y: 7 }, BoardPos { x: 1, y: 8});
     test.move_piece(BoardPos { x: 1, y: 8 }, BoardPos { x: 1, y: 9});
+  }
+  /**
+   * Rook Tests
+   */
+
+  #[test]
+  fn rook_basic_moves() {
+    let mut board = Board::new();
+
+    let moves: &[(((i16, i16),(i16, i16)), ((i16, i16),(i16, i16)))] = &[
+      (((0, 1), (0, 2)), ((0, 6), (0, 4))),
+      (((0,0), (0, 1)), ((1,6), (1,4))),
+    ];
+
+    for (white, black) in moves.iter() {
+      board.move_piece(build_bp(white.0), build_bp(white.1));
+      board.move_piece(build_bp(black.0), build_bp(black.1));
+    }
   }
 
   /**
