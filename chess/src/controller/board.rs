@@ -288,18 +288,25 @@ impl Board {
 
     fn rook_eats(&self, piece: &Material, target: BoardPos) -> Option<BoardPos> {
       Some(piece.pos)
+
     }
 
     fn rook_check_bounds_and_eat(&self, target: BoardPos, piece: &Material) -> Option<BoardPos>{
+      match Self::rook_eats(self, piece, target) {
+        Some(targ) => {
+          // Some(targ)
+
+        },
+        None => {},
+      }
       match Self::check_bounds(target) {
-        Some(..) => {},
+        Some(targ) => {
+          Some(targ)
+        },
         None => {return None},
       }
 
-      match Self::rook_eats(self, piece, target) {
-        Some(targ) => Some(targ),
-        None => {return None},
-      }
+
     }
 
     fn find_legal_rook_moves<'a>(&self, piece: &Material, moves: &'a mut Vec<BoardPos>) -> &'a mut Vec<BoardPos> {
