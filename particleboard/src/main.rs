@@ -77,6 +77,7 @@ impl Cpu {
 
         match opcode {
             0b01_101_11 => {
+                println!("Executing LUI");
                 // LUI
                 let imm = (next_instruction >> 12) << 12;
                 self.set_register(rd, imm);
@@ -86,6 +87,7 @@ impl Cpu {
                 let imm = (next_instruction >> 20);
                 match funct3 {
                     000 => {
+                        println!("Executing ADDI");
                         // ADDI
                         self.set_register(rd, self.registers[rs1 as usize].wrapping_add(imm));
                     },
@@ -96,6 +98,7 @@ impl Cpu {
                 }
             },
             0b_11_011_11 => {
+                println!("Executing JAL");
                 // JAALL
                 let imm_20 = (next_instruction as i32 >> 31) as u32;
                 let imm_1 = (next_instruction >> 21) & 0b11111_11111;
@@ -104,6 +107,56 @@ impl Cpu {
                 let imm = (imm_20 << 20) | (imm_1 << 1) | (imm_11 << 11) | (imm_12 << 12);
                 self.set_register(rd, self.pc);
                 self.pc = address_of_instruction.wrapping_add(imm);
+            },
+            // TODO: review, this may be incorrect
+            0b_01_000_11 => {
+                // STORE
+                let imm_0 = (next_instruction >> 7) & 0b11111;
+                let imm_5 = next_instruction >> 25;
+                let imm = (imm_0 << 0) | (imm_5 << 5);
+                match funct3 {
+                    000 => {
+                        panic!("implement 000")
+                    },
+                    // LW/SW
+                    0b010 => {
+                        println!("Executing STORE SW");
+                        // store 32-bit values from low bits of rs2 to mem
+                        ram.bytes.push(rs2 as u8);
+                    },
+                    x => panic!("implement other things for STORE. {:03b}", x)
+                }
+                println!("finished STORE");
+            },
+            0b00_101_11 => {
+                println!("Executing AUPIC");
+                // U
+                // AUIPC
+                let imm_12 = (next_instruction >> 12) << 12;
+                // TODO: add offset to address of AUIPC instruction
+                self.set_register(rd, address_of_instruction.wrapping_add(imm_12));
+            },
+            0b11_001_11 => {
+                println!("Executing JALR");
+                // JALR
+                let imm_0 = (next_instruction as i32 >> 20) as u32;
+                // add imm_0 to rs1
+                self.set_register(rs1, address_of_instruction.wrapping_add(imm_0));
+                // write address of instruction after jump (pc +4) to register rd
+                self.set_register(rd, self.pc);
+            },
+            0b00_000_11 => {
+                println!("Executing LOAD LB");
+                // pull 8 bits from mem
+                // sign extend to 32 bits
+                let mem = ram.bytes.pop().unwrap() as i32;
+                // store in rd
+                self.set_register(rd, mem as u32);
+            },
+            0b11_000_11 => {
+                println!("Executing BRANCH BEQ");
+
+                
             },
             x => panic!("Unknown opcode: {x:07b}"),
         }
