@@ -155,8 +155,12 @@ impl Cpu {
             },
             0b11_000_11 => {
                 println!("Executing BRANCH BEQ");
-
-                
+                if rs1 == rs2 {
+                    self.pc = address_of_instruction;
+                    println!("BRANCHING");
+                } else {
+                    println!("NOT BRANCHING");
+                }
             },
             x => panic!("Unknown opcode: {x:07b}"),
         }
