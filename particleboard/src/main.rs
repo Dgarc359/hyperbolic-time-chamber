@@ -91,6 +91,9 @@ impl Cpu {
                         // ADDI
                         self.set_register(rd, self.registers[rs1 as usize].wrapping_add(imm));
                     },
+                    111 => {
+                        panic!("Implement ANDI");
+                    },
                     // Notes that will live somewhere some day:
                     // SRA: Shift Right ARITHMETIC - Shift in copies of the sign bit
                     // SRL: Shift Right LOGICAL - Shift in zeroes
@@ -139,11 +142,14 @@ impl Cpu {
             0b11_001_11 => {
                 println!("Executing JALR");
                 // JALR
+                // add sign extended 12 bit immediate to register rs1
                 let imm_0 = (next_instruction as i32 >> 20) as u32;
-                // add imm_0 to rs1
-                self.set_register(rs1, address_of_instruction.wrapping_add(imm_0));
+                // self.set_register(rs1, address_of_instruction.wrapping_add(imm_0));
+                let addr = self.registers[rs1 as usize].wrapping_add(imm_0) << 1;
+                // TODO: set least signifant bit to 0??
                 // write address of instruction after jump (pc +4) to register rd
                 self.set_register(rd, self.pc);
+                self.pc = addr;
             },
             0b00_000_11 => {
                 println!("Executing LOAD LB");
@@ -154,10 +160,16 @@ impl Cpu {
                 self.set_register(rd, mem as u32);
             },
             0b11_000_11 => {
-                println!("Executing BRANCH BEQ");
-                if rs1 == rs2 {
-                    self.pc = address_of_instruction;
+                println!("Executing BRANCH");
+                if rs1.eq(&rs2) {
                     println!("BRANCHING");
+                    match funct3 {
+                        000 => {
+                            // panic!("implement beq");
+                            self.pc = address_of_instruction;
+                        },
+                        x => {panic!("Implement Branching {x:03b}")}
+                    }
                 } else {
                     println!("NOT BRANCHING");
                 }
