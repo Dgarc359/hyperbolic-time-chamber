@@ -6,6 +6,8 @@ MEMORY {
 
 SECTIONS {
     .text : {
+        . = . + 1024;
+        _initial_stack_pointer = .;
         *(.text.entrypoint)
     } >RAM
     .text : {
