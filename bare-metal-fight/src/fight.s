@@ -67,7 +67,7 @@ _entrypoint:
     beq t1, a0, .Ldoattack_jump
     beq t2, a0, .Ldopotion_jump
 .Ldoattack_jump:
-    li t0, 1
+    # li t0, 1
     la a0, user_attacks
     call putstring
     addi s10, s10, -10
@@ -77,7 +77,22 @@ _entrypoint:
     la a0, user_potions
     call putstring
     # TODO: don't add greater than 50
+    beq s9, x0, .Lnopotions_jump
+    addi t0, s11, 30
+    li t1, 51
+    blt t0, t1, .Lsetmaxhealth
     addi s11, s11, 30
+.Lsetmaxhealth:
+    la a0, wasted_potions
+    call putstring
+    li s11, 50
+.Lreducepotions:
+    addi s9, s9, -1
+    call .Lenemyattack_jump
+.Lnopotions_jump:
+    la a0, no_potions
+    call putstring
+    call .Lmaingame_loop
     # call .Lenemyattack_jump
 
 .Lenemyattack_jump:
@@ -86,6 +101,7 @@ _entrypoint:
     call putstring
     addi s11, s11, -10
 
+    li t0, 1
     blt s11, t0, .Lendgame_jump # user dies
     blt s10, t0, .Lendgame_jump # enemy dies
     bge s11, t0, .Lmaingame_loop # user is still alive
@@ -141,6 +157,12 @@ user_and_enemy_die:
 
 user_wins_without_dying:
 .string "You didn't die!\n"
+
+no_potions:
+.string "You are out of potions. nerd.\n"
+
+wasted_potions:
+.string "Some was wasted!\n"
 
 .text
 
