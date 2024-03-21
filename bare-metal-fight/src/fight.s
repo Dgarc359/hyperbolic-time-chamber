@@ -2,24 +2,72 @@
 .global _entrypoint
 _entrypoint:
     la sp, _initial_stack_pointer
+    # Store player vars in last registers
+    # Don't use these for anything else!
+    # uhp
+    li s11, 50
+    # mhp
+    li s10, 100
+    # upot
+    li s9, 3
+
     la a0, welcome_string
     call putstring
-    li a0, 123
-    call putint
+    # todo: LOOP
+.Lmaingame_loop:
     li a0, '\n'
     call sbi_console_putchar
-    li a0, 90218
-    call putint
-    li a0, '\n'
+
+    la a0, user_info_s_one
+    call putstring
+
+    li a0, ' '
     call sbi_console_putchar
-    li a0, 1800345899
+
+    mv a0, s11
     call putint
-    li a0, '\n'
+
+    li a0, ' '
+    call sbi_console_putchar
+
+    la a0, user_info_s_two
+    call putstring
+
+    li a0, ' '
+    call sbi_console_putchar
+
+    mv a0, s9
+    call putint
+
+    li a0, ' '
+    call sbi_console_putchar
+
+    la a0, user_info_s_three
+    call putstring
+
+    li a0, ' '
+    call sbi_console_putchar
+
+    mv a0, s10
+    call putint
+
+    li a0, ' '
+    call sbi_console_putchar
+
+    la a0, user_info_s_four
+    call putstring
+
+    li a0, ' '
     call sbi_console_putchar
 .Lgetchar_loop:
     call sbi_console_getchar
     blt a0, x0, .Lgetchar_loop
-    mv s2, a0
+    li t1, 'a'
+    li t2, 'p'
+    beq t1, a0, doattack
+    beq t2, a0, dopotion
+    beq s10, x0, .Lendgame_jump
+    # mv s2, a0
     # call sbi_console_putchar
     # mv a0, s2
     # call sbi_console_putchar
@@ -39,12 +87,35 @@ _entrypoint:
     # call sbi_console_putchar
     # mv a0, s2
     # call sbi_console_putchar
+.Lendgame_jump:
     call sbi_shutdown
 .data
 welcome_string:
 .string "Welcome to Fight!"
 
+user_info_s_one:
+# There's some issues with ending with a space in this string..
+.string "You have:"
+
+user_info_s_two:
+# There's some issues with starting with a space in this string..
+.string "/ 50 HP. Potions:"
+
+user_info_s_three:
+.string "\nEnemy has:"
+
+user_info_s_four:
+.string "/ 100 HP\nWhat will you do? (a)ttack, or (p)otion?"
+
+user_attacks:
+.string "You attack, dealing 10 damage!\n"
+
+user_potions:
+.string "You potioned"
+
 .text
+
+
 
 # sp and s1 and s2
 # V
@@ -65,13 +136,22 @@ welcome_string:
 
 
 
+doattack:
+    la a0, user_attacks
+    call putstring
+    addi s10, s10, -10
+    bgt s11, x0, .Lmaingame_loop
+    # beq s10, x0, .Lendgame_jump
+
+dopotion:
+    la a0, user_potions
+    call putstring
 
 
-
-
-
-
-
+putspace:
+    li a0, ' '
+    call sbi_console_putchar
+    ret
 
 
 
