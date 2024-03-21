@@ -64,30 +64,47 @@ _entrypoint:
     blt a0, x0, .Lgetchar_loop
     li t1, 'a'
     li t2, 'p'
-    beq t1, a0, doattack
-    beq t2, a0, dopotion
-    beq s10, x0, .Lendgame_jump
-    # mv s2, a0
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
-    # mv a0, s2
-    # call sbi_console_putchar
+    beq t1, a0, .Ldoattack_jump
+    beq t2, a0, .Ldopotion_jump
+.Ldoattack_jump:
+    li t0, 1
+    la a0, user_attacks
+    call putstring
+    addi s10, s10, -10
+    call .Lenemyattack_jump
+
+.Ldopotion_jump:
+    la a0, user_potions
+    call putstring
+    # TODO: don't add greater than 50
+    addi s11, s11, 30
+    # call .Lenemyattack_jump
+
+.Lenemyattack_jump:
+    # enemy attacks
+    la a0, enemy_attacks
+    call putstring
+    addi s11, s11, -10
+
+    blt s11, t0, .Lendgame_jump # user dies
+    blt s10, t0, .Lendgame_jump # enemy dies
+    bge s11, t0, .Lmaingame_loop # user is still alive
+
 .Lendgame_jump:
+    blt s11, t0, .Luserdies # user dies
+    bge s11, t0, .Luserlives # user is still alive
+.Luserdies:
+    la a0, user_dies
+    call putstring
+    bge s10, t0, .Lshutdown_jump # enemy doesnt die
+    la a0, user_and_enemy_die
+    call putstring
+    call .Lshutdown_jump
+.Luserlives:
+    la a0, user_wins_without_dying
+    call putstring
+
+.Lshutdown_jump:
     call sbi_shutdown
 .data
 welcome_string:
@@ -108,12 +125,46 @@ user_info_s_four:
 .string "/ 100 HP\nWhat will you do? (a)ttack, or (p)otion?"
 
 user_attacks:
-.string "You attack, dealing 10 damage!\n"
+.string "\nYou attack, dealing 10 damage!\n"
+
+enemy_attacks:
+.string "\nThe enemy attacks, dealing 10 damage!\n"
 
 user_potions:
-.string "You potioned"
+.string "\nYou drink a potion, healing 30 hitpoints.\n"
+
+user_dies:
+.string "You died.\n"
+
+user_and_enemy_die:
+.string "The fact that your enemy died too is small consolation for you.\n"
+
+user_wins_without_dying:
+.string "You didn't die!\n"
 
 .text
+
+
+
+
+
+
+
+
+
+enemyattack:
+    la a0, enemy_attacks
+    call putstring
+    addi s11, s11, -10
+    # blt s11, t0, .Lendgame_jump
+    # blt s10, t0, .Lendgame_jump
+    # bge s11, t0, .Lmaingame_loop
+
+
+putspace:
+    li a0, ' '
+    call sbi_console_putchar
+    ret
 
 
 
@@ -131,33 +182,6 @@ user_potions:
 # -     t0: temp char code to output
 # 10        the array
 # 4 + 4 + 4 + 4 + 10 = 26
-
-
-
-
-
-doattack:
-    la a0, user_attacks
-    call putstring
-    addi s10, s10, -10
-    bgt s11, x0, .Lmaingame_loop
-    # beq s10, x0, .Lendgame_jump
-
-dopotion:
-    la a0, user_potions
-    call putstring
-
-
-putspace:
-    li a0, ' '
-    call sbi_console_putchar
-    ret
-
-
-
-
-
-
 
 putint:
     # Reserve 26 bytes of stack
