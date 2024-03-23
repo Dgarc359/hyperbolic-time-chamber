@@ -326,7 +326,7 @@ impl Board {
       match piece.kind {
         Pieces::Pawn => { 
           let mut moves : Vec<BoardPos> = vec![];
-          return Self::find_legal_pawn_moves(self, piece, &mut moves).to_vec()
+          return self.find_legal_pawn_moves(piece, &mut moves).to_vec()
         },
         Pieces::Rook => {
           let mut moves : Vec<BoardPos> = vec![];

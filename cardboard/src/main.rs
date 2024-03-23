@@ -1,3 +1,7 @@
+use std::{
+    io::{stdin, Read},
+};
+
 /// The actual bytes of our entire ROM image.
 const ROM: &[u8] = include_bytes!("rom.bin");
 /// The magic sequence to output to an ANSI-compliant terminal that will make
@@ -29,7 +33,9 @@ impl Memory {
             return ROM[(address - 0x8000) as usize];
         }
         else if address >= 0x4000 {
-            todo!("io lol")
+            let mut buf = [0u8];
+            stdin().read_exact(&mut buf).unwrap();
+            return buf[0]
         }
         else {
             return self.ram[address as usize];
@@ -152,7 +158,11 @@ impl Cpu {
         // -- Setting the V flag --
         // FUCK THE V FLAG
         // -- Setting the C flag --
-
+        if value > 0b1111_1111 {
+          self.status = self.status | STATUS_C
+        } else {
+          self.status = self.status & !STATUS_C
+        }
         self.status_nz(value as u8)
     }
     /// Absolute addressing mode: Fetch two additional bytes, use them as the
@@ -187,6 +197,10 @@ impl Cpu {
         let offset = (byte as i8) as u16;
         self.program_counter.wrapping_add(offset)
     }
+
+    pub fn is_carry_set(&self) -> bool {
+        (self.status & STATUS_C) != 0
+    }
     /// Is Equal!?
     pub fn is_equal(&self) -> bool {
         (self.status & STATUS_Z) != 0
@@ -202,6 +216,11 @@ impl Cpu {
                 let value = self.fetch_pc_postincrement(mem);
                 self.accumulator = self.status_nz(self.accumulator | value);
             },
+            0x18 => {
+                // CLC
+                // CLear Carry bit
+                self.status = self.status & !STATUS_C;
+            },
             0x20 => {
                 // JSR abs
                 // Jump to SubRoutine (ABSolute address)
@@ -211,10 +230,29 @@ impl Cpu {
                 self.push(mem, pc_bytes[0]);
                 self.program_counter = address;
             },
+            0x30 => {
+                // BMI
+                // Branch if MInus (if N is set)
+                let target = self.fetch_branch_target(mem);
+                if (self.status & STATUS_N) != 0 {
+                  self.program_counter = target;
+                }
+            },
+            0x3A => {
+                // DEC or DEA
+                // DECrement Accumulator
+                self.accumulator = self.status_nz(self.accumulator.wrapping_sub(1));
+            },
             0x48 => {
                 // PHA
                 // PusH Accumulator (onto the stack)
                 self.push(mem, self.accumulator);
+            },
+            0x4C => {
+                // JMP abs
+                // JuMP (ABSolute address)
+                let target = self.fetch_absolute_address(mem);
+                self.program_counter = target;
             },
             0x5A => {
                 // PHY
@@ -232,6 +270,15 @@ impl Cpu {
                 // PLA
                 // PuLl Accumulator (from the stack)
                 self.accumulator= self.pull(mem);
+            },
+            0x69 => {
+                // ADC #imm
+                // ADd with Carry (IMMediate value)
+                let a = self.accumulator as u16;
+                let b = self.fetch_pc_postincrement(mem) as u16;
+                let c = if (self.status & STATUS_C) != 0 { 1 } else { 0 };
+                let result = a + b + c;
+                self.accumulator = self.status_nvzc(result);
             },
             0x7A => {
                 // PLY
@@ -261,6 +308,14 @@ impl Cpu {
                 // STore X (ABSolute address)
                 let address = self.fetch_absolute_address(mem);
                 mem.store_byte(address, self.index_x);
+            },
+            0x90 => {
+                // BCC
+                // Branch if Carry Clear
+                let target = self.fetch_branch_target(mem);
+                if (self.status & STATUS_C) == 0 {
+                    self.program_counter = target;
+                }
             },
             0x9A => {
                 // TXS
@@ -297,11 +352,32 @@ impl Cpu {
                 let val = self.fetch_pc_postincrement(mem);
                 self.accumulator = self.status_nz(val);
             },
+            0xAD => {
+                // LDA abs
+                // LoaD Accumulator (ABSolute address)
+                let address = self.fetch_absolute_address(mem);
+                self.accumulator = self.status_nz(mem.fetch_byte(address));
+            },
+            0xB0 => {
+                // BCS
+                // My guess: Branch [condition set???]
+                // The real one: Branch if Carry Set
+                let target = self.fetch_branch_target(mem);
+                if self.is_carry_set() {
+                    self.program_counter = target;
+                }
+            },
             0xB1 => {
                 // LDA (zp),Y
                 // LoaD Accumulator (Zero Page indirect Y-indexed)
                 let address = self.fetch_zero_page_indirect_y_index_address(mem);
                 self.accumulator = self.status_nz(mem.fetch_byte(address));
+            },
+            0xC6 => {
+                // DEC zp
+                // DECrement (Zero Page address)
+                let address = self.fetch_zero_page_address(mem);
+                mem.store_byte(address, self.status_nz(mem.fetch_byte(address).wrapping_sub(1)));
             },
             0xC8 => {
                 // INY
@@ -312,7 +388,7 @@ impl Cpu {
                 // CMP #imm
                 // CoMPare accumulator (immediate value)
                 let a = self.accumulator as u16;
-                let b = !self.fetch_pc_postincrement(mem) as u16;
+                let b = (!self.fetch_pc_postincrement(mem)) as u16;
                 let c = 1;
                 // because this is generally true in binary apparently
                 // a + !b + 1 = a - b
@@ -321,6 +397,15 @@ impl Cpu {
                 // discard the result...
                 self.status_nvzc(result);
                 // ...but not before using it to set flags!
+            },
+            0xCB => {}, // TODO
+            0xD0 => {
+                // BNE
+                // Branch if Not Equal
+                let target = self.fetch_branch_target(mem);
+                if !self.is_equal() {
+                    self.program_counter = target;
+                }
             },
             0xE8 => {
                 // INX
