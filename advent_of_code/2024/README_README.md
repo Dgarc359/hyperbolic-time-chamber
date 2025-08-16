@@ -1,0 +1,1 @@
+ advent_runner -d <DAY> rust

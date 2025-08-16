@@ -1,0 +1,2 @@
+Part 1 solution: 11
+Part 2 solution: 31
